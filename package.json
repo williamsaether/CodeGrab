@@ -1,0 +1,26 @@
+{
+	"name": "codesnag",
+	"version": "1.0.0",
+	"description": "Chrome Extension for generating QR-/Barcodes.",
+	"main": "index.js",
+	"directories": {
+		"lib": "lib"
+	},
+	"dependencies": {
+		"typescript": "^5.8.3"
+	},
+	"devDependencies": {},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/williamsaether/CodeSnag.git"
+	},
+	"author": "William Sæther",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/williamsaether/CodeSnag/issues"
+	},
+	"homepage": "https://github.com/williamsaether/CodeSnag#readme"
+}
