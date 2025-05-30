@@ -26,6 +26,7 @@
 			"resources": [
 				"public/overlay.html",
 				"public/overlay.css",
+				"public/icons/*",
         "lib/JsBarcode.all.min.js",
         "lib/qrcode.min.js"
 			],
@@ -36,6 +37,9 @@
 		"<all_urls>"
 	],
 	"action" : {
-		"default_title": "codegrab"
+		"default_title": "codegrab",
+		"default_icon": {
+			"128": "public/icons/logo.png"
+		}
 	}
 }
