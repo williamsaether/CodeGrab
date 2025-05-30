@@ -28,10 +28,19 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 chrome.action.onClicked.addListener((tab) => {
   if (!tab?.id) return;
 
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ["dist/overlay.js"]
-  }).then(() => {
-    chrome.tabs.sendMessage(tab.id!, { type: "show-overlay" });
+  // Try to ping the content script first
+  chrome.tabs.sendMessage(tab.id!, { type: "ping" }, (response) => {
+    if (response && response.type === "pong") {
+      // Already injected, just toggle
+      chrome.tabs.sendMessage(tab.id!, { type: "toggle-overlay" });
+    } else {
+      // Not injected, inject then toggle
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id! },
+        files: ["dist/overlay.js"]
+      }).then(() => {
+        chrome.tabs.sendMessage(tab.id!, { type: "toggle-overlay" });
+      });
+    }
   });
 });

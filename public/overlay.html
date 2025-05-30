@@ -1,5 +1,25 @@
-<div id="codesnag-overlay">
-  <button id="codesnag-close">Close</button>
-  <div id="codesnag-output"></div>
+<div id="codegrab-overlay">
+  <button id="codegrab-close">Close</button>
+  <h2 id="codegrab-title">CodeGrab</h2>
+  <div id="codegrab-output"></div>
+  <div class="codegrab-container">
+    <input type="checkbox" id="codegrab-remember" checked>
+    <label for="codegrab-remember">Remember this element</label>
+  </div>
+  <button id="codegrab-manually">🔗 Manually select element</button>
+  <div class="codegrab-container">
+    <input type="text" id="codegrab-input" placeholder="...">
+    <button id="codegrab-generate-qr">Generate</button>
+    <!-- show generate-barcode button under or above generate-qr on hover on button above -->
+  </div>
+  <div>
+    <button id="codegrab-copy">📋 Copy</button>
+    <button id="codegrab-download">⬇️ Download</button>
+    <button id="codegrab-settings">⚙️ Settings</button>
+  </div>
+  <div>
+    <span>Powered by <a href="https://codecore.bysaether.com" target="_blank">CodeCore</a></span>
+    <a href="#">☕ Support us</a>
+    </div>
+  </div>
 </div>
-<link rel="stylesheet" href="overlay.css">

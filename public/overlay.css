@@ -1,21 +1,36 @@
-#codesnag-overlay {
+#codegrab-overlay {
+  justify-items: center;
+  font-size: 16px;
   position: fixed;
-  top: 10px;
-  right: 10px;
+  top: .8em;
+  right: .8em;
   z-index: 999999;
   background: white;
   border: 1px solid #ccc;
-  padding: 12px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 1em;
+  border-radius: 1em;
+  box-shadow: 0 .3em .6em rgba(0, 0, 0, 0.2);
 }
 
-#codesnag-close {
+#codegrab-close {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: .4em;
+  right: .4em;
   background: none;
   border: none;
-  font-size: 16px;
+  font-size: 1em;
   cursor: pointer;
+}
+
+#codegrab-title {
+  font-size: 1.5em;
+}
+
+#codegrab-output {
+  width: 200px;
+  height: 200px;
+}
+
+.codegrab-container {
+
 }
