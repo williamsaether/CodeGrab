@@ -30,6 +30,23 @@ declare const JsBarcode: any;
       })
     }
 
+    // Add hover logic for barcode button
+    const qrBtn = document.getElementById('codegrab-generate-qr');
+    const barcodeBtn = document.getElementById('codegrab-generate-barcode');
+    if (qrBtn && barcodeBtn) {
+      qrBtn.addEventListener('mouseenter', () => {
+        barcodeBtn.style.display = 'inline-block';
+      });
+      qrBtn.addEventListener('mouseleave', () => {
+        setTimeout(() => {
+          if (!barcodeBtn.matches(':hover')) barcodeBtn.style.display = 'none';
+        }, 100);
+      });
+      barcodeBtn.addEventListener('mouseleave', () => {
+        barcodeBtn.style.display = 'none';
+      });
+    }
+
     const js1 = document.createElement("script")
     js1.src = chrome.runtime.getURL("lib/qrcode.min.js")
     js1.id = "codegrab-qrcode-js"

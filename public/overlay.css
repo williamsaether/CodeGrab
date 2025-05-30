@@ -10,6 +10,8 @@
   padding: 1em;
   border-radius: 1em;
   box-shadow: 0 .3em .6em rgba(0, 0, 0, 0.2);
+  min-width: 320px;
+  gap: 1em;
 }
 
 #codegrab-close {
@@ -20,17 +22,203 @@
   border: none;
   font-size: 1em;
   cursor: pointer;
+  color: #888;
+  transition: color 0.2s;
+}
+#codegrab-close:hover {
+  color: #222;
 }
 
 #codegrab-title {
   font-size: 1.5em;
+  font-weight: 600;
+  margin-bottom: 0.5em;
+  letter-spacing: 0.02em;
 }
 
 #codegrab-output {
-  width: 200px;
+  min-width: 200px;
   height: 200px;
+  background: #f8f8f8;
+  border-radius: 0.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5em;
+  border: 1px solid #eee;
 }
 
-.codegrab-container {
+#codegrab-input {
+  flex: 1;
+  padding: 0.5em 0.8em;
+  border: 1px solid #ddd;
+  border-radius: 0.4em;
+  font-size: 1em;
+  background: #fafbfc;
+  outline: none;
+  transition: border 0.2s;
+}
+#codegrab-input:focus {
+  border: 1px solid #aaa;
+}
 
+button {
+  background: #f4f4f4;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.4em;
+  padding: 0.4em 1em;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+  min-width: 0;
+}
+button:hover {
+  background: #eaeaea;
+  border: 1px solid #bbb;
+}
+
+#codegrab-generate-qr, #codegrab-generate-barcode {
+  margin-left: 0.2em;
+}
+
+.codegrab-dropdown-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+#codegrab-generate-barcode {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 10;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 0.4em;
+  margin: 0;
+  padding: 0.4em 1em;
+}
+
+#codegrab-generate-qr:hover + #codegrab-generate-barcode,
+#codegrab-generate-barcode:hover {
+  display: block;
+}
+
+#codegrab-copy, #codegrab-download, #codegrab-settings {
+  margin-right: 0;
+}
+
+#codegrab-remember {
+  accent-color: #222;
+}
+
+#codegrab-remember, label[for="codegrab-remember"] {
+  cursor: pointer;
+}
+
+.codegrab-remember-manual {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: 0.3em;
+  margin-bottom: 0.5em;
+}
+
+.codegrab-remember-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+#codegrab-manually {
+  margin-left: 0;
+  margin-top: 0.2em;
+  padding-left: 1em;
+  padding-right: 1em;
+  white-space: nowrap;
+}
+
+#codegrab-remember {
+  appearance: none;
+  width: 1.1em;
+  height: 1.1em;
+  border: 1.5px solid #bbb;
+  border-radius: 0.3em;
+  background: #fff;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+  position: relative;
+  vertical-align: middle;
+  margin: 0;
+}
+#codegrab-remember:checked {
+  border-color: #222;
+  background: #222;
+}
+#codegrab-remember:checked::after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0.32em;
+  top: 0.08em;
+  width: 0.3em;
+  height: 0.6em;
+  border: solid #fff;
+  border-width: 0 0.18em 0.18em 0;
+  transform: rotate(45deg);
+}
+#codegrab-remember:focus {
+  box-shadow: 0 0 0 2px #e0e0e0;
+}
+
+label[for="codegrab-remember"] {
+  font-size: 1em;
+  color: #444;
+  user-select: none;
+}
+
+#codegrab-overlay span, #codegrab-overlay a {
+  font-size: 0.95em;
+  color: #888;
+  text-decoration: none;
+}
+#codegrab-overlay a:hover {
+  color: #222;
+}
+
+#codegrab-overlay, button, input, label {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+.codegrab-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.codegrab-col {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.codegrab-btn-group {
+  width: 100%;
+  display: flex;
+  gap: 0.5em;
+}
+
+.codegrab-btn-group button {
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
 }
