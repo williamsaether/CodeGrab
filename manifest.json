@@ -1,6 +1,6 @@
 {
 	"manifest_version": 3,
-	"name": "CodeSnag",
+	"name": "CodeGrab",
 	"version": "1.0",
 	"description": "Chrome Extension for generating QR-/Barcodes.",
 	"permissions": [
@@ -36,6 +36,6 @@
 		"<all_urls>"
 	],
 	"action" : {
-		"default_title": "CodeSnag"
+		"default_title": "codegrab"
 	}
 }
