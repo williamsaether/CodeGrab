@@ -20,7 +20,6 @@ declare const JsBarcode: any
     css.href = chrome.runtime.getURL("public/overlay.css")
     css.id = "codegrab-overlay-css"
     document.head.appendChild(css)
-    
 
     const closeBtn = document.getElementById("codegrab-close")
     if (closeBtn) {
@@ -66,6 +65,10 @@ declare const JsBarcode: any
       })
     }
 
+    (document.getElementById("codegrab-remove-input") as HTMLButtonElement).addEventListener('click', () => {
+      (document.getElementById("codegrab-input") as HTMLInputElement).value = ''
+    })
+
     const js1 = document.createElement("script")
     js1.src = chrome.runtime.getURL("lib/qrcode.min.js")
     js1.id = "codegrab-qrcode-js"
@@ -91,41 +94,184 @@ declare const JsBarcode: any
 
     injectOverlay().then(() => {
       const overlay = document.getElementById("codegrab-overlay")
-      if (overlay && message.type !== "toggle-overlay") {
-        overlay.style.display = "grid"
-        overlay.classList.remove("minimized")
-      }
-      if (overlay && message.type === "toggle-overlay") {
-        if (overlay.style.display === "grid") {
-          overlay.style.display = "none"
-        } else {
-          overlay.style.display = "grid"
-          overlay.classList.remove("minimized")
-        }
-        return
-      }
-
       const output = document.getElementById("codegrab-output")
-      if (!output) return
+      if (!overlay || !output) return
 
-      output.innerHTML = ""
+      const cbox = document.getElementById('codegrab-remember') as HTMLInputElement
+      const inputWrap = document.querySelector('.codegrab-input') as HTMLDivElement
+      const input = document.getElementById('codegrab-input') as HTMLInputElement
+      const url = location.hostname
+      const selectors = JSON.parse(localStorage.getItem('codegrab_selectors') || '{}')
+      const selector = selectors[url]?.selector
 
-      if (message.type === "generate-qr") {
+      cbox.checked = selector && selector === message.selector
+
+      if (message.type === 'toggle-overlay') {
+        if (output.children.length > 0 && selector) {
+          const text = getTextFromSelector(selector)
+
+          if (output.title === text) {
+            cbox.disabled = false
+            cbox.checked = true
+            cbox.parentElement?.classList.remove("codegrab-disabled")
+          } else {
+            cbox.checked = false
+            cbox.disabled = true
+            cbox.parentElement?.classList.add("codegrab-disabled")
+          }
+        } else {
+          cbox.checked = false
+          cbox.disabled = true
+          cbox.parentElement?.classList.add("codegrab-disabled")
+        }
+      } else if (message.type === "generate-from-selector") {
+        //
+      } else {
+        // generate-qr or generate-barcode
+      }
+
+      cbox.onchange = () => {
+        if (cbox.checked) {
+          if (message.selector && message.text) {
+            const el = document.querySelector(message.selector)
+            let sliceInfo = null
+            if (el) {
+              const idx = ((el as HTMLElement).innerText || '').indexOf(message.text)
+              if (idx !== -1) {
+                sliceInfo = { start: idx, end: idx + message.text.length }
+              }
+            }
+            selectors[url] = {
+              selector: message.selector,
+              name: message.text?.slice(0, 32) || 'Element',
+              slice: sliceInfo
+            }
+            localStorage.setItem('codegrab_selectors', JSON.stringify(selectors))
+          }
+        } else {
+          if (output.title !== getTextFromSelector(selectors[url].selector)) {
+            cbox.disabled = true
+            cbox.parentElement?.classList.add("codegrab-disabled")
+          }
+
+          delete selectors[url]
+          localStorage.setItem('codegrab_selectors', JSON.stringify(selectors))
+        }
+      }
+
+      input.oninput = () => {
+        if (selectors[url] && input.value === getTextFromSelector(selectors[url].selector)) {
+          inputWrap.classList.add("stored")
+        } else {
+          inputWrap.classList.remove("stored")
+        }
+      }
+
+      let selectorToUse = message.selector
+      let textToUse = message.text
+      if ((message.type === 'generate-from-selector' || message.type === 'toggle-overlay') && selectors[url]) {
+        selectorToUse = selectors[url].selector
+        const el = document.querySelector(selectorToUse)
+        if (el && selectors[url].slice) {
+          const fullText = (el as HTMLElement).innerText || ''
+          const { start, end } = selectors[url].slice
+          textToUse = fullText.slice(start, end)
+        } else if (el) {
+          textToUse = (el as HTMLElement).innerText || ''
+        }
+      }
+      if (selectorToUse) {
+        (document.getElementById('codegrab-input') as HTMLInputElement).value = textToUse || ''
+      }
+
+      function renderOutputQR(text?: string) {
+        if (!output) return
+        output.innerHTML = ""
         new QRCode(output, {
-          text: message.text || "No data",
+          text: text || "No data",
           width: 200,
           height: 200
         })
-      } else if (message.type === "generate-barcode") {
+      }
+      
+      function renderOutputBarcode(text?: string) {
+        if (!output) return
+        output.innerHTML = ""
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         output.appendChild(svg)
-
-        JsBarcode(svg, message.text || "123456789012", {
+        JsBarcode(svg, text || "No data", {
           format: "CODE128",
           width: 2,
           height: 80,
           displayValue: true
         })
+      }
+
+      function getTextFromSelector(selector: string) {
+        const el = document.querySelector(selector)
+        
+        if (el) {
+          const text = (el as HTMLElement).innerText || ''
+          if (selectors[url].slice) {
+            const { start, end } = selectors[url].slice
+            return text.slice(start, end)
+          }
+          if (text.length > 0) return text
+        }
+        return null
+      }
+
+      // Always rerender QR code on overlay open, but only if there is data
+      if (message.type === "toggle-overlay" && overlay.style.display !== "none") {
+        const inputVal = (document.getElementById('codegrab-input') as HTMLInputElement).value
+        if (inputVal && inputVal.trim() !== '') {
+          renderOutputQR(inputVal)
+        } else {
+          const output = document.getElementById("codegrab-output")
+          if (output) output.innerHTML = ''
+        }
+      }
+
+      // Make the QR and Barcode buttons work
+      const qrBtn = document.getElementById('codegrab-generate-qr')
+      const barcodeBtn = document.getElementById('codegrab-generate-barcode')
+      if (qrBtn) {
+        qrBtn.onclick = () => {
+          const val = (document.getElementById('codegrab-input') as HTMLInputElement).value
+          if (val && val.trim() !== '') {
+            renderOutputQR(val)
+          }
+        }
+      }
+      if (barcodeBtn) {
+        barcodeBtn.onclick = () => {
+          const val = (document.getElementById('codegrab-input') as HTMLInputElement).value
+          if (val && val.trim() !== '') {
+            renderOutputBarcode(val)
+          }
+        }
+      }
+
+      if (message.type !== "toggle-overlay") {
+        overlay.style.display = "grid"
+        overlay.classList.remove("minimized")
+      }
+      if (message.type === "toggle-overlay") {
+        if (overlay.style.display === "grid") {
+          overlay.style.display = "none"
+        } else {
+          overlay.style.display = "grid"
+          overlay.classList.remove("minimized")
+          // Only rerender QR if there is data
+          const inputVal = (document.getElementById('codegrab-input') as HTMLInputElement).value
+          if (inputVal && inputVal.trim() !== '') {
+            renderOutputQR(inputVal)
+          } else {
+            const output = document.getElementById("codegrab-output")
+            if (output) output.innerHTML = ''
+          }
+        }
+        return
       }
     })
   })

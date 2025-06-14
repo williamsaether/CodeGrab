@@ -11,7 +11,7 @@
   border-radius: 1em;
   box-shadow: 0 .3em .6em rgba(0, 0, 0, 0.2);
   min-width: 320px;
-  gap: 1em;
+  gap: .2em;
 }
 
 #codegrab-close {
@@ -37,7 +37,7 @@
 }
 
 #codegrab-output {
-  min-width: 200px;
+  width: 200px;
   height: 200px;
   background: #f8f8f8;
   border-radius: 0.5em;
@@ -49,7 +49,6 @@
 }
 
 #codegrab-input {
-  flex: 1;
   padding: 0.5em 0.8em;
   border: 1px solid #ddd;
   border-radius: 0.4em;
@@ -61,27 +60,43 @@
 #codegrab-input:focus {
   border: 1px solid #aaa;
 }
-
-button {
-  background: #f4f4f4;
-  border: 1px solid #e0e0e0;
-  border-radius: 0.4em;
-  padding: 0.4em 1em;
-  font-size: 1em;
-  cursor: pointer;
-  transition: background 0.2s, border 0.2s;
-  min-width: 0;
+.codegrab-input {
+  position: relative;
 }
-button:hover {
-  background: #eaeaea;
-  border: 1px solid #bbb;
+.codegrab-input.stored::before {
+  position: absolute;
+  content: 'From site element';
+  top: calc(-1.5em - .2em);
+  left: .2em;
+  padding: .1em .6em;
+  background: #eee;
+  border-top-left-radius: .5em;
+  border-top-right-radius: .5em;
+  border: 1px solid #ddd;
+  border-bottom: none;
+}
+
+#codegrab-remove-input {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: .7em;
+  background: #9b9b9b;
+  --mask: no-repeat url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" stroke="red" stroke-width="10" fill="none" stroke-linecap="round"><path d="m10 10 44 44m0-44L10 54"/></svg>');
+  -webkit-mask: var(--mask);
+  mask: var(--mask);
+  width: 1em;
+  height: 1em;
+  padding: 0;
+}
+#codegrab-remove-input:hover {
+  background: #ccc;
 }
 
 .codegrab-dropdown-group {
   position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
+  margin-top: 1.7em;
 }
 
 #codegrab-generate-barcode {
@@ -136,6 +151,10 @@ button:hover {
   display: flex;
   align-items: center;
   gap: 0.5em;
+}
+
+.codegrab-disabled, .codegrab-disabled > * {
+  cursor: not-allowed !important;
 }
 
 #codegrab-manually {
@@ -205,6 +224,21 @@ label[for="codegrab-remember"] {
   justify-content: center;
   gap: 0.5em;
   margin-bottom: 0.5em;
+}
+
+.codegrab-row button {
+  background: #f4f4f4;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.4em;
+  padding: 0.4em 1em;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+  min-width: 0;
+}
+.codegrab-row button:hover {
+  background: #eaeaea;
+  border: 1px solid #bbb;
 }
 
 .codegrab-col {

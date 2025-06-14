@@ -5,19 +5,21 @@
   <div id="codegrab-output"></div>
   <div class="codegrab-row codegrab-remember-manual">
     <div class="codegrab-remember-row">
-      <input type="checkbox" id="codegrab-remember" checked>
+      <input type="checkbox" id="codegrab-remember">
       <label for="codegrab-remember">Remember this element</label>
     </div>
-    <button id="codegrab-manually">🔗 Select new</button>
   </div>
   <div class="codegrab-row codegrab-dropdown-group">
-    <input type="text" id="codegrab-input" placeholder="...">
+    <div class="codegrab-input">
+      <input type="text" id="codegrab-input" placeholder="...">
+      <button id="codegrab-remove-input"></button>
+    </div>
     <div style="position:relative;display:inline-block;">
       <button id="codegrab-generate-qr">Generate QR</button>
       <button id="codegrab-generate-barcode">Barcode</button>
     </div>
   </div>
-  <div class="codegrab-btn-group">
+  <div class="codegrab-row codegrab-btn-group">
     <button id="codegrab-copy">Copy</button>
     <button id="codegrab-download">Download</button>
     <button id="codegrab-settings">Settings</button>
