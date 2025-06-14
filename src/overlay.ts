@@ -69,6 +69,16 @@ declare const JsBarcode: any
       (document.getElementById("codegrab-input") as HTMLInputElement).value = ''
     })
 
+    const inputElement = document.getElementById("codegrab-input") as HTMLInputElement
+    const inputWrapper = inputElement.parentElement as HTMLDivElement
+    inputElement.addEventListener('focusin', () => {
+      inputWrapper.classList.add('focus')
+    })
+
+    inputElement.addEventListener('focusout', () => {
+      inputWrapper.classList.remove('focus')
+    })
+
     const js1 = document.createElement("script")
     js1.src = chrome.runtime.getURL("lib/qrcode.min.js")
     js1.id = "codegrab-qrcode-js"
@@ -105,29 +115,32 @@ declare const JsBarcode: any
       const selector = selectors[url]?.selector
 
       cbox.checked = selector && selector === message.selector
+      const text = getTextFromSelector(selector)
 
       if (message.type === 'toggle-overlay') {
-        if (output.children.length > 0 && selector) {
-          const text = getTextFromSelector(selector)
-
-          if (output.title === text) {
-            cbox.disabled = false
+        if (output.children.length === 0 && selector) {
+          if (text) {
+            renderOutputQR(text)
             cbox.checked = true
-            cbox.parentElement?.classList.remove("codegrab-disabled")
-          } else {
-            cbox.checked = false
-            cbox.disabled = true
-            cbox.parentElement?.classList.add("codegrab-disabled")
+            enableCheckbox()
           }
+        }
+        if (output.children.length > 0 && selector) {
+          if (output.title === text) {
+            cbox.checked = true
+            enableCheckbox()
+          } else disableAndUncheckCheckbox()
         } else {
-          cbox.checked = false
-          cbox.disabled = true
-          cbox.parentElement?.classList.add("codegrab-disabled")
+          disableAndUncheckCheckbox()
         }
       } else if (message.type === "generate-from-selector") {
         //
-      } else {
-        // generate-qr or generate-barcode
+      } else if (message.type === "generate-qr") {
+        renderOutputQR(message.text)
+        enableCheckbox()
+      } else if (message.type === "generate-barcode") {
+        renderOutputBarcode(message.text)
+        enableCheckbox()
       }
 
       cbox.onchange = () => {
@@ -209,46 +222,36 @@ declare const JsBarcode: any
 
       function getTextFromSelector(selector: string) {
         const el = document.querySelector(selector)
-        
         if (el) {
           const text = (el as HTMLElement).innerText || ''
-          if (selectors[url].slice) {
-            const { start, end } = selectors[url].slice
-            return text.slice(start, end)
-          }
+          if (selectors[url].slice) return (({ start, end }) => text.slice(start, end))(selectors[url].slice)
           if (text.length > 0) return text
         }
         return null
       }
 
-      // Always rerender QR code on overlay open, but only if there is data
-      if (message.type === "toggle-overlay" && overlay.style.display !== "none") {
-        const inputVal = (document.getElementById('codegrab-input') as HTMLInputElement).value
-        if (inputVal && inputVal.trim() !== '') {
-          renderOutputQR(inputVal)
-        } else {
-          const output = document.getElementById("codegrab-output")
-          if (output) output.innerHTML = ''
-        }
+      function enableCheckbox() {
+        cbox.disabled = false
+        cbox.parentElement?.classList.remove("codegrab-disabled")
       }
 
-      // Make the QR and Barcode buttons work
-      const qrBtn = document.getElementById('codegrab-generate-qr')
-      const barcodeBtn = document.getElementById('codegrab-generate-barcode')
-      if (qrBtn) {
-        qrBtn.onclick = () => {
-          const val = (document.getElementById('codegrab-input') as HTMLInputElement).value
-          if (val && val.trim() !== '') {
-            renderOutputQR(val)
-          }
+      function disableAndUncheckCheckbox() {
+        cbox.disabled = true
+        cbox.checked = false
+        cbox.parentElement?.classList.add("codegrab-disabled")
+      }
+
+      
+      (document.getElementById('codegrab-generate-qr') as HTMLButtonElement).onclick = () => {
+        const val = (document.getElementById('codegrab-input') as HTMLInputElement).value
+        if (val && val.trim() !== '') {
+          renderOutputQR(val)
         }
       }
-      if (barcodeBtn) {
-        barcodeBtn.onclick = () => {
-          const val = (document.getElementById('codegrab-input') as HTMLInputElement).value
-          if (val && val.trim() !== '') {
-            renderOutputBarcode(val)
-          }
+      (document.getElementById('codegrab-generate-barcode') as HTMLButtonElement).onclick = () => {
+        const val = (document.getElementById('codegrab-input') as HTMLInputElement).value
+        if (val && val.trim() !== '') {
+          renderOutputBarcode(val)
         }
       }
 
@@ -262,14 +265,6 @@ declare const JsBarcode: any
         } else {
           overlay.style.display = "grid"
           overlay.classList.remove("minimized")
-          // Only rerender QR if there is data
-          const inputVal = (document.getElementById('codegrab-input') as HTMLInputElement).value
-          if (inputVal && inputVal.trim() !== '') {
-            renderOutputQR(inputVal)
-          } else {
-            const output = document.getElementById("codegrab-output")
-            if (output) output.innerHTML = ''
-          }
         }
         return
       }

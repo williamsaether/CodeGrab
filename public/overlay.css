@@ -14,18 +14,26 @@
   gap: .2em;
 }
 
-#codegrab-close {
+#codegrab-close, #codegrab-minimize {
   position: absolute;
   top: .4em;
   right: .4em;
   background: none;
   border: none;
-  font-size: 1em;
+  font-size: 1.1em;
   cursor: pointer;
   color: #888;
   transition: color 0.2s;
+  width: 2em;
+  height: 2em;
+  line-height: 1.2em;
+  text-align: center;
+  z-index: 1000001;
 }
-#codegrab-close:hover {
+#codegrab-minimize {
+  right: 2.2em;
+}
+#codegrab-close:hover, #codegrab-minimize:hover {
   color: #222;
 }
 
@@ -37,7 +45,8 @@
 }
 
 #codegrab-output {
-  width: 200px;
+  max-width: 350px;
+  min-width: 200px;
   height: 200px;
   background: #f8f8f8;
   border-radius: 0.5em;
@@ -49,7 +58,13 @@
 }
 
 #codegrab-input {
-  padding: 0.5em 0.8em;
+  all: unset;
+}
+.codegrab-input {
+  display: flex;
+  gap: .5em;
+  position: relative;
+  padding: 0.5em 0.5em 0.5em 0.8em;
   border: 1px solid #ddd;
   border-radius: 0.4em;
   font-size: 1em;
@@ -57,16 +72,13 @@
   outline: none;
   transition: border 0.2s;
 }
-#codegrab-input:focus {
+.codegrab-input.focus {
   border: 1px solid #aaa;
-}
-.codegrab-input {
-  position: relative;
 }
 .codegrab-input.stored::before {
   position: absolute;
   content: 'From site element';
-  top: calc(-1.5em - .2em);
+  top: calc(-1.5em - .3em);
   left: .2em;
   padding: .1em .6em;
   background: #eee;
@@ -77,21 +89,17 @@
 }
 
 #codegrab-remove-input {
-  content: '';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  right: .7em;
+  width: 1em;
+  height: 1em;
+  padding: 0;
+  align-self: center;
   background: #9b9b9b;
   --mask: no-repeat url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" stroke="red" stroke-width="10" fill="none" stroke-linecap="round"><path d="m10 10 44 44m0-44L10 54"/></svg>');
   -webkit-mask: var(--mask);
   mask: var(--mask);
-  width: 1em;
-  height: 1em;
-  padding: 0;
 }
 #codegrab-remove-input:hover {
-  background: #ccc;
+  background: #707070;
 }
 
 .codegrab-dropdown-group {
@@ -259,26 +267,6 @@ label[for="codegrab-remember"] {
   flex: 1 1 0;
   min-width: 0;
   box-sizing: border-box;
-}
-
-#codegrab-minimize {
-  position: absolute;
-  top: .4em;
-  right: 2.2em;
-  background: none;
-  border: none;
-  font-size: 1.2em;
-  cursor: pointer;
-  color: #888;
-  transition: color 0.2s;
-  width: 2em;
-  height: 2em;
-  line-height: 1.2em;
-  text-align: center;
-  z-index: 1000001;
-}
-#codegrab-minimize:hover {
-  color: #222;
 }
 
 #codegrab-logo {
