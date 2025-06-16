@@ -115,7 +115,11 @@ declare const JsBarcode: any
       const selector = selectors[url]?.selector
 
       cbox.checked = selector && selector === message.selector
-      const text = getTextFromSelector(selector)
+
+      let text = getTextFromSelector(selector)
+      window.addEventListener('popstate', () => {
+        text = getTextFromSelector(selector)
+      })
 
       if (message.type === 'toggle-overlay') {
         if (output.children.length === 0 && selector) {
@@ -133,8 +137,12 @@ declare const JsBarcode: any
         } else {
           disableAndUncheckCheckbox()
         }
+
+        input.value = text || ''
       } else if (message.type === "generate-from-selector") {
         //
+
+        input.value = text || ''
       } else if (message.type === "generate-qr") {
         renderOutputQR(message.text)
         enableCheckbox()
@@ -162,7 +170,7 @@ declare const JsBarcode: any
             localStorage.setItem('codegrab_selectors', JSON.stringify(selectors))
           }
         } else {
-          if (output.title !== getTextFromSelector(selectors[url].selector)) {
+          if (output.title !== text) {
             cbox.disabled = true
             cbox.parentElement?.classList.add("codegrab-disabled")
           }
@@ -172,30 +180,8 @@ declare const JsBarcode: any
         }
       }
 
-      input.oninput = () => {
-        if (selectors[url] && input.value === getTextFromSelector(selectors[url].selector)) {
-          inputWrap.classList.add("stored")
-        } else {
-          inputWrap.classList.remove("stored")
-        }
-      }
-
-      let selectorToUse = message.selector
-      let textToUse = message.text
-      if ((message.type === 'generate-from-selector' || message.type === 'toggle-overlay') && selectors[url]) {
-        selectorToUse = selectors[url].selector
-        const el = document.querySelector(selectorToUse)
-        if (el && selectors[url].slice) {
-          const fullText = (el as HTMLElement).innerText || ''
-          const { start, end } = selectors[url].slice
-          textToUse = fullText.slice(start, end)
-        } else if (el) {
-          textToUse = (el as HTMLElement).innerText || ''
-        }
-      }
-      if (selectorToUse) {
-        (document.getElementById('codegrab-input') as HTMLInputElement).value = textToUse || ''
-      }
+      checkUpdated()
+      input.oninput = () => checkUpdated()
 
       function renderOutputQR(text?: string) {
         if (!output) return
@@ -241,16 +227,27 @@ declare const JsBarcode: any
         cbox.parentElement?.classList.add("codegrab-disabled")
       }
 
+      function checkUpdated() {
+        if (input.value === text) {
+          inputWrap.classList.add("stored")
+        } else {
+          inputWrap.classList.remove("stored")
+        }
+      }
       
       (document.getElementById('codegrab-generate-qr') as HTMLButtonElement).onclick = () => {
-        const val = (document.getElementById('codegrab-input') as HTMLInputElement).value
+        const val = input.value
         if (val && val.trim() !== '') {
+          if (val === text) enableCheckbox()
+          else disableAndUncheckCheckbox()
           renderOutputQR(val)
         }
       }
       (document.getElementById('codegrab-generate-barcode') as HTMLButtonElement).onclick = () => {
-        const val = (document.getElementById('codegrab-input') as HTMLInputElement).value
+        const val = input.value
         if (val && val.trim() !== '') {
+          if (val === text) enableCheckbox()
+          else disableAndUncheckCheckbox()
           renderOutputBarcode(val)
         }
       }

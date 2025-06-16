@@ -9,56 +9,71 @@ chrome.runtime.onInstalled.addListener(() => {
 		title: "Generate Barcode",
 		contexts: ["selection"]
 	})
+	chrome.contextMenus.create({
+		id: "toggle-overlay",
+		title: "Open CodeGrab",
+		contexts: ["all"]
+	})
 })
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-    if (typeof tab?.id !== 'number') return;
+  if (!tab?.id) return
 
+  if (info.menuItemId === "toggle-overlay") {
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: (selectedText: string) => {
-        function getElementBySelectedText(selectedText: string): Element | null {
-          if (!selectedText) return null
-          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null)
-          let node: Node | null
-          while ((node = walker.nextNode())) {
-            if (node.nodeValue && node.nodeValue.includes(selectedText)) {
-              return node.parentElement
-            }
+      files: ["dist/overlay.js"]
+    }).then(() => {
+      chrome.tabs.sendMessage(tab.id!, { type: "toggle-overlay" })
+    })
+    return
+  }
+
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: (selectedText: string) => {
+      function getElementBySelectedText(selectedText: string): Element | null {
+        if (!selectedText) return null
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null)
+        let node: Node | null
+        while ((node = walker.nextNode())) {
+          if (node.nodeValue && node.nodeValue.includes(selectedText)) {
+            return node.parentElement
           }
-          return null
         }
-        function getUniqueSelector(el: Element | null): string {
-          if (!el) return ''
-          if (el.id) return `#${el.id}`
-          let path = []
-          while (el && el.nodeType === 1 && el !== document.body) {
-            let selector = el.nodeName.toLowerCase()
-            if (el.className) selector += '.' + Array.from(el.classList).join('.')
-            path.unshift(selector)
-            el = el.parentElement!
-          }
-          return path.join(' > ')
+        return null
+      }
+      function getUniqueSelector(el: Element | null): string {
+        if (!el) return ''
+        if (el.id) return `#${el.id}`
+        let path = []
+        while (el && el.nodeType === 1 && el !== document.body) {
+          let selector = el.nodeName.toLowerCase()
+          if (el.className) selector += '.' + Array.from(el.classList).join('.')
+          path.unshift(selector)
+          el = el.parentElement!
         }
-        const el = getElementBySelectedText(selectedText)
-        const selector = getUniqueSelector(el)
-        return selector
-      },
-      args: [info.selectionText || '']
-    }, (results) => {
-      const selector = results && results[0] && results[0].result;
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id! },
-        files: ["dist/overlay.js"]
-      }).then(() => {
-        chrome.tabs.sendMessage(tab.id!, {
-          type: info.menuItemId,
-          text: info.selectionText,
-          selector: selector
-        })
+        return path.join(' > ')
+      }
+      const el = getElementBySelectedText(selectedText)
+      const selector = getUniqueSelector(el)
+      return selector
+    },
+    args: [info.selectionText || '']
+  }, (results) => {
+    const selector = results && results[0] && results[0].result;
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id! },
+      files: ["dist/overlay.js"]
+    }).then(() => {
+      chrome.tabs.sendMessage(tab.id!, {
+        type: info.menuItemId,
+        text: info.selectionText,
+        selector: selector
       })
     })
   })
+})
 
 chrome.action.onClicked.addListener((tab) => {
   if (!tab?.id) return

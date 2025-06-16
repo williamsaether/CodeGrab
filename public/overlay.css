@@ -213,7 +213,6 @@ label[for="codegrab-remember"] {
 }
 
 #codegrab-overlay span, #codegrab-overlay a {
-  font-size: 0.95em;
   color: #888;
   text-decoration: none;
 }
@@ -247,14 +246,6 @@ label[for="codegrab-remember"] {
 .codegrab-row button:hover {
   background: #eaeaea;
   border: 1px solid #bbb;
-}
-
-.codegrab-col {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5em;
 }
 
 .codegrab-btn-group {
