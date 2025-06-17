@@ -103,7 +103,7 @@ declare const JsBarcode: any
       return true
     }
 
-    injectOverlay().then(() => {
+    injectOverlay().then(async () => {
       const overlay = document.getElementById("codegrab-overlay") as HTMLDivElement
       const output = document.getElementById("codegrab-output") as HTMLDivElement
       if (!overlay || !output) return
@@ -113,8 +113,15 @@ declare const JsBarcode: any
       const inputWrap = document.querySelector('.codegrab-input') as HTMLDivElement
       const input = document.getElementById('codegrab-input') as HTMLInputElement
       const url = location.hostname
-      const selectors = JSON.parse(localStorage.getItem('codegrab_selectors') || '{}')
-      const selector = selectors[url]?.selector
+      let selectorObj: any = undefined
+      try {
+        const result = await new Promise<any>(resolve => chrome.storage.sync.get(url, resolve))
+        selectorObj = result[url]
+        console.log(selectorObj)
+      } catch (e) {
+        selectorObj = undefined
+      }
+      const selector = selectorObj?.selector
 
       cbox.checked = selector && selector === message.selector
 
@@ -149,7 +156,7 @@ declare const JsBarcode: any
         enableCheckbox()
       }
 
-      cbox.onchange = () => {
+      cbox.onchange = async () => {
         if (cbox.checked) {
           if (message.selector && message.text) {
             text = message.text
@@ -163,12 +170,12 @@ declare const JsBarcode: any
                 sliceInfo = { start: idx, end: idx + message.text.length }
               }
             }
-            selectors[url] = {
+            const selectorObj = {
               selector: message.selector,
               name: message.text?.slice(0, 32) || 'Element',
               slice: sliceInfo
             }
-            localStorage.setItem('codegrab_selectors', JSON.stringify(selectors))
+            await new Promise<void>(resolve => chrome.storage.sync.set({ [url]: selectorObj }, resolve))
           }
         } else {
           if (text && output.title !== text) {
@@ -180,9 +187,7 @@ declare const JsBarcode: any
             disableAndUncheckCheckbox()
             checkUpdated()
           }
-
-          delete selectors[url]
-          localStorage.setItem('codegrab_selectors', JSON.stringify(selectors))
+          await new Promise<void>(resolve => chrome.storage.sync.remove(url, resolve))
         }
       }
 
@@ -218,7 +223,7 @@ declare const JsBarcode: any
         const el = document.querySelector(selector)
         if (el) {
           const text = (el as HTMLElement).innerText || ''
-          if (selectors[url].slice) return (({ start, end }) => text.slice(start, end))(selectors[url].slice)
+          if (selectorObj?.slice) return (({ start, end }) => text.slice(start, end))(selectorObj.slice)
           if (text.length > 0) return text
         }
         return null
@@ -255,6 +260,7 @@ declare const JsBarcode: any
           if (val === text) enableAndCheckCheckbox()
           else disableAndUncheckCheckbox()
           renderOutputQR(val)
+          checkUpdated()
         }
       }
       (document.getElementById('codegrab-generate-barcode') as HTMLButtonElement).onclick = () => {
@@ -263,6 +269,7 @@ declare const JsBarcode: any
           if (val === text) enableAndCheckCheckbox()
           else disableAndUncheckCheckbox()
           renderOutputBarcode(val)
+          checkUpdated()
         }
       }
 
