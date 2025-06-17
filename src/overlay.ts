@@ -40,6 +40,7 @@ declare const JsBarcode: any
         if (overlay.classList.contains("minimized")) {
           overlay.classList.remove("minimized")
           e.stopPropagation()
+          window.dispatchEvent(new CustomEvent('codegrab-unminimized'))
         }
       })
       document.addEventListener("mousedown", (e) => {
@@ -103,10 +104,11 @@ declare const JsBarcode: any
     }
 
     injectOverlay().then(() => {
-      const overlay = document.getElementById("codegrab-overlay")
-      const output = document.getElementById("codegrab-output")
+      const overlay = document.getElementById("codegrab-overlay") as HTMLDivElement
+      const output = document.getElementById("codegrab-output") as HTMLDivElement
       if (!overlay || !output) return
-
+      
+      const outputText = (document.getElementById("codegrab-value")!).querySelector('span') as HTMLSpanElement
       const cbox = document.getElementById('codegrab-remember') as HTMLInputElement
       const inputWrap = document.querySelector('.codegrab-input') as HTMLDivElement
       const input = document.getElementById('codegrab-input') as HTMLInputElement
@@ -117,32 +119,28 @@ declare const JsBarcode: any
       cbox.checked = selector && selector === message.selector
 
       let text = getTextFromSelector(selector)
-      window.addEventListener('popstate', () => {
+      input.value = text || ''
+
+      window.addEventListener('codegrab-unminimized', () => {
         text = getTextFromSelector(selector)
+        if (text) input.value = text
+        checkUpdated()
       })
 
       if (message.type === 'toggle-overlay') {
         if (output.children.length === 0 && selector) {
           if (text) {
             renderOutputQR(text)
-            cbox.checked = true
-            enableCheckbox()
+            enableAndCheckCheckbox()
           }
         }
         if (output.children.length > 0 && selector) {
           if (output.title === text) {
-            cbox.checked = true
-            enableCheckbox()
+            enableAndCheckCheckbox()
           } else disableAndUncheckCheckbox()
         } else {
           disableAndUncheckCheckbox()
         }
-
-        input.value = text || ''
-      } else if (message.type === "generate-from-selector") {
-        //
-
-        input.value = text || ''
       } else if (message.type === "generate-qr") {
         renderOutputQR(message.text)
         enableCheckbox()
@@ -154,6 +152,9 @@ declare const JsBarcode: any
       cbox.onchange = () => {
         if (cbox.checked) {
           if (message.selector && message.text) {
+            text = message.text
+            if (text) input.value = text
+            checkUpdated()
             const el = document.querySelector(message.selector)
             let sliceInfo = null
             if (el) {
@@ -170,9 +171,14 @@ declare const JsBarcode: any
             localStorage.setItem('codegrab_selectors', JSON.stringify(selectors))
           }
         } else {
-          if (output.title !== text) {
+          if (text && output.title !== text) {
             cbox.disabled = true
             cbox.parentElement?.classList.add("codegrab-disabled")
+            text = null
+          }
+          if (!message.selector) {
+            disableAndUncheckCheckbox()
+            checkUpdated()
           }
 
           delete selectors[url]
@@ -184,17 +190,17 @@ declare const JsBarcode: any
       input.oninput = () => checkUpdated()
 
       function renderOutputQR(text?: string) {
-        if (!output) return
         output.innerHTML = ""
         new QRCode(output, {
           text: text || "No data",
           width: 200,
           height: 200
         })
+        output.title = text || ""
+        outputText.textContent = text || "..."
       }
       
       function renderOutputBarcode(text?: string) {
-        if (!output) return
         output.innerHTML = ""
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         output.appendChild(svg)
@@ -204,6 +210,8 @@ declare const JsBarcode: any
           height: 80,
           displayValue: true
         })
+        output.title = text || ""
+        outputText.textContent = text || "..."
       }
 
       function getTextFromSelector(selector: string) {
@@ -221,6 +229,12 @@ declare const JsBarcode: any
         cbox.parentElement?.classList.remove("codegrab-disabled")
       }
 
+      function enableAndCheckCheckbox() {
+        cbox.disabled = false
+        cbox.checked = true
+        cbox.parentElement?.classList.remove("codegrab-disabled")
+      }
+
       function disableAndUncheckCheckbox() {
         cbox.disabled = true
         cbox.checked = false
@@ -228,7 +242,7 @@ declare const JsBarcode: any
       }
 
       function checkUpdated() {
-        if (input.value === text) {
+        if (cbox.checked && input.value === text) {
           inputWrap.classList.add("stored")
         } else {
           inputWrap.classList.remove("stored")
@@ -238,7 +252,7 @@ declare const JsBarcode: any
       (document.getElementById('codegrab-generate-qr') as HTMLButtonElement).onclick = () => {
         const val = input.value
         if (val && val.trim() !== '') {
-          if (val === text) enableCheckbox()
+          if (val === text) enableAndCheckCheckbox()
           else disableAndUncheckCheckbox()
           renderOutputQR(val)
         }
@@ -246,12 +260,104 @@ declare const JsBarcode: any
       (document.getElementById('codegrab-generate-barcode') as HTMLButtonElement).onclick = () => {
         const val = input.value
         if (val && val.trim() !== '') {
-          if (val === text) enableCheckbox()
+          if (val === text) enableAndCheckCheckbox()
           else disableAndUncheckCheckbox()
           renderOutputBarcode(val)
         }
       }
 
+      const copyBtn = document.getElementById('codegrab-copy') as HTMLButtonElement
+      const downloadBtn = document.getElementById('codegrab-download') as HTMLButtonElement
+      
+      function utf8ToBase64(str: string) {
+        return btoa(
+          encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+            String.fromCharCode(parseInt(p1, 16))
+          )
+        )
+      }
+
+      function svgToPngBlob(svg: SVGSVGElement): Promise<Blob> {
+        return new Promise((resolve, reject) => {
+          const bbox = svg.getBBox()
+          const canvas = document.createElement('canvas')
+          canvas.width = bbox.width
+          canvas.height = bbox.height
+          const ctx = canvas.getContext('2d')!
+          const svgData = new XMLSerializer().serializeToString(svg)
+          const imgSrc = 'data:image/svg+xml;base64,' + utf8ToBase64(svgData)
+          const image = new window.Image()
+          image.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            ctx.drawImage(image, 0, 0)
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob)
+              else reject(new Error('Failed to create PNG blob'))
+            }, 'image/png')
+          }
+          image.onerror = reject
+          image.src = imgSrc
+        })
+      }
+
+      copyBtn.onclick = async () => {
+        const img = output.querySelector('img') as HTMLImageElement | null
+        const svg = output.querySelector('svg') as SVGSVGElement | null
+        if (img) {
+          try {
+            const response = await fetch(img.src)
+            const blob = await response.blob()
+            await navigator.clipboard.write([
+              new ClipboardItem({ [blob.type]: blob })
+            ])
+            copyBtn.textContent = 'Copied!'
+            setTimeout(() => (copyBtn.textContent = 'Copy'), 1200)
+          } catch (e) {
+            copyBtn.textContent = 'Failed!'
+            setTimeout(() => (copyBtn.textContent = 'Copy'), 1200)
+          }
+        } else if (svg) {
+          try {
+            const blob = await svgToPngBlob(svg)
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ])
+            copyBtn.textContent = 'Copied!'
+            setTimeout(() => (copyBtn.textContent = 'Copy'), 1200)
+          } catch (e) {
+            copyBtn.textContent = 'Failed!'
+            setTimeout(() => (copyBtn.textContent = 'Copy'), 1200)
+          }
+        }
+      }
+
+      downloadBtn.onclick = async () => {
+        const img = output.querySelector('img') as HTMLImageElement | null
+        const svg = output.querySelector('svg') as SVGSVGElement | null
+        if (img) {
+          const a = document.createElement('a')
+          a.href = img.src
+          a.download = 'codegrab-' + output.title + '-qr.png'
+          document.body.appendChild(a)
+          a.click()
+          setTimeout(() => document.body.removeChild(a), 100)
+        } else if (svg) {
+          try {
+            const blob = await svgToPngBlob(svg)
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = 'codegrab-' + output.title + '-barcode.png'
+            document.body.appendChild(a)
+            a.click()
+            setTimeout(() => {
+              document.body.removeChild(a)
+              URL.revokeObjectURL(url)
+            }, 100)
+          } catch (e) {}
+        }
+      }
+      
       if (message.type !== "toggle-overlay") {
         overlay.style.display = "grid"
         overlay.classList.remove("minimized")
