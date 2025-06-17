@@ -9,7 +9,9 @@
 	"dependencies": {
 		"typescript": "^5.8.3"
 	},
-	"devDependencies": {},
+	"devDependencies": {
+		"@types/chrome": "^0.0.326"
+	},
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},

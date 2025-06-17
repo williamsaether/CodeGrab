@@ -28,7 +28,8 @@
 				"public/overlay.css",
 				"public/icons/*",
         "lib/JsBarcode.all.min.js",
-        "lib/qrcode.min.js"
+        "lib/qrcode.min.js",
+				"lib/finder.umd.js"
 			],
 			"matches": ["<all_urls>"]
 		}
