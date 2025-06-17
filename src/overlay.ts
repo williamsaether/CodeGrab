@@ -107,11 +107,11 @@ declare const JsBarcode: any
       const overlay = document.getElementById("codegrab-overlay") as HTMLDivElement
       const output = document.getElementById("codegrab-output") as HTMLDivElement
       if (!overlay || !output) return
-      
-      const outputText = (document.getElementById("codegrab-value")!).querySelector('span') as HTMLSpanElement
+
+      const outputText = document.querySelector("#codegrab-value span") as HTMLSpanElement
       const cbox = document.getElementById('codegrab-remember') as HTMLInputElement
-      const inputWrap = document.querySelector('.codegrab-input') as HTMLDivElement
       const input = document.getElementById('codegrab-input') as HTMLInputElement
+      const inputWrap = input.parentElement as HTMLDivElement
       const url = location.hostname
       let selectorObj: any = undefined
       try {
@@ -139,21 +139,28 @@ declare const JsBarcode: any
           if (text) {
             renderOutputQR(text)
             enableAndCheckCheckbox()
+            setGenerated(true)
           }
-        }
-        if (output.children.length > 0 && selector) {
-          if (output.title === text) {
+        } else if (output.children.length > 0 && selector) {
+          if (output.title === text) enableAndCheckCheckbox()
+          else if (overlay.style.display === 'none' && text) {
+            renderOutputQR(text)
             enableAndCheckCheckbox()
+            setGenerated(true)
+          } else if (overlay.classList.contains('minimized')) {
+            if (getGenerated() === true) enableAndCheckCheckbox()
+            else disableAndUncheckCheckbox()
+            checkUpdated()
           } else disableAndUncheckCheckbox()
-        } else {
-          disableAndUncheckCheckbox()
-        }
-      } else if (message.type === "generate-qr") {
+        } else disableAndUncheckCheckbox()
+      } else if (message.type === 'generate-qr') {
         renderOutputQR(message.text)
         enableCheckbox()
-      } else if (message.type === "generate-barcode") {
+        setGenerated(false)
+      } else if (message.type === 'generate-barcode') {
         renderOutputBarcode(message.text)
         enableCheckbox()
+        setGenerated(false)
       }
 
       cbox.onchange = async () => {
@@ -194,29 +201,31 @@ declare const JsBarcode: any
       checkUpdated()
       input.oninput = () => checkUpdated()
 
-      function renderOutputQR(text?: string) {
+      function renderOutputQR(value?: string) {
+        if (!value) return
         output.innerHTML = ""
         new QRCode(output, {
-          text: text || "No data",
+          text: value || "No data",
           width: 200,
           height: 200
         })
-        output.title = text || ""
-        outputText.textContent = text || "..."
+        output.title = value
+        outputText.textContent = value
       }
       
-      function renderOutputBarcode(text?: string) {
+      function renderOutputBarcode(value?: string) {
+        if (!value) return
         output.innerHTML = ""
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         output.appendChild(svg)
-        JsBarcode(svg, text || "No data", {
+        JsBarcode(svg, value || "No data", {
           format: "CODE128",
           width: 2,
           height: 80,
           displayValue: true
         })
-        output.title = text || ""
-        outputText.textContent = text || "..."
+        output.title = value || ""
+        outputText.textContent = value || "..."
       }
 
       function getTextFromSelector(selector: string) {
@@ -247,11 +256,19 @@ declare const JsBarcode: any
       }
 
       function checkUpdated() {
-        if (cbox.checked && input.value === text) {
+        if (input.value === text) {
           inputWrap.classList.add("stored")
         } else {
           inputWrap.classList.remove("stored")
         }
+      }
+
+      function setGenerated(value: boolean) {
+        output.setAttribute('generated-from-selector', value + '')
+      }
+
+      function getGenerated() {
+        return output.getAttribute('generated-from-selector') === 'true'
       }
       
       (document.getElementById('codegrab-generate-qr') as HTMLButtonElement).onclick = () => {
@@ -370,7 +387,10 @@ declare const JsBarcode: any
         overlay.classList.remove("minimized")
       }
       if (message.type === "toggle-overlay") {
-        if (overlay.style.display === "grid") {
+        if (overlay.classList.contains('minimized')) {
+          overlay.style.display = "grid"
+          overlay.classList.remove("minimized")
+        } else if (overlay.style.display === "grid") {
           overlay.style.display = "none"
         } else {
           overlay.style.display = "grid"
