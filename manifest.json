@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "CodeGrab",
 	"version": "1.0",
-	"description": "Chrome Extension for generating QR-/Barcodes.",
+	"description": "Right-click to generate QR codes or barcodes from elements on any page.",
 	"permissions": [
 		"contextMenus",
 		"storage",
@@ -38,9 +38,17 @@
 		"<all_urls>"
 	],
 	"action" : {
-		"default_title": "codegrab",
+		"default_title": "CodeGrab",
 		"default_icon": {
-			"128": "public/icons/logo.png"
+			"16": "public/icons/codegrab-blue@16x.png",
+			"32": "public/icons/codegrab-blue@32x.png",
+			"48": "public/icons/codegrab-blue@48x.png"
 		}
+	},
+	"icons": {
+		"16": "public/icons/codegrab-blue@16x.png",
+		"32": "public/icons/codegrab-blue@32x.png",
+		"48": "public/icons/codegrab-blue@48x.png",
+		"128": "public/icons/codegrab-blue@128x.png"
 	}
 }

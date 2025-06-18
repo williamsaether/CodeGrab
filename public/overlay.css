@@ -1,3 +1,8 @@
+:host {
+  --close: no-repeat url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" stroke="red" stroke-width="10" fill="none" stroke-linecap="round"><path d="m10 10 44 44m0-44L10 54"/></svg>');
+  --minify: no-repeat url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" stroke="red" stroke-width="10" fill="none" stroke-linecap="round"><path d="m10 54 44 0"/></svg>');
+}
+
 #codegrab-overlay {
   justify-items: center;
   font-size: 16px;
@@ -15,32 +20,34 @@
 }
 
 #codegrab-close, #codegrab-minimize {
+  all: unset;
   position: absolute;
-  top: .4em;
-  right: .4em;
-  background: none;
-  border: none;
-  font-size: 1.1em;
+  top: .8em;
+  right: .8em;
   cursor: pointer;
-  color: #888;
-  transition: color 0.2s;
-  width: 2em;
-  height: 2em;
-  line-height: 1.2em;
-  text-align: center;
-  z-index: 1000001;
+  background: #888;
+  transition: background 0.2s;
+  width: 1.5em;
+  height: 1.5em;
+  z-index: 1000000;
+}
+#codegrab-close {
+  -webkit-mask: var(--close);
+  mask: var(--close);
 }
 #codegrab-minimize {
-  right: 2.2em;
+  right: 2.6em;
+  -webkit-mask: var(--minify);
+  mask: var(--minify);
 }
 #codegrab-close:hover, #codegrab-minimize:hover {
-  color: #222;
+  background: #555555;
 }
 
 #codegrab-title {
   font-size: 1.5em;
   font-weight: 600;
-  margin-bottom: 0.5em;
+  margin: 0 0 0.5em;
   letter-spacing: 0.02em;
 }
 
@@ -96,9 +103,8 @@
   padding: 0;
   align-self: center;
   background: #9b9b9b;
-  --mask: no-repeat url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" stroke="red" stroke-width="10" fill="none" stroke-linecap="round"><path d="m10 10 44 44m0-44L10 54"/></svg>');
-  -webkit-mask: var(--mask);
-  mask: var(--mask);
+  -webkit-mask: var(--close);
+  mask: var(--close);
 }
 #codegrab-remove-input:hover {
   background: #707070;
@@ -142,44 +148,9 @@
 }
 
 #codegrab-remember {
-  accent-color: #222;
-}
-
-#codegrab-remember, label[for="codegrab-remember"] {
-  cursor: pointer;
-}
-
-.codegrab-remember-manual {
-  width: 100%;
-  display: flex;
-  align-items: stretch;
-  gap: 0.3em;
-  margin-bottom: 0.5em;
-}
-
-.codegrab-remember-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-
-.codegrab-disabled, .codegrab-disabled > * {
-  cursor: not-allowed !important;
-  opacity: 0.7;
-}
-
-#codegrab-manually {
-  margin-left: 0;
-  margin-top: 0.2em;
-  padding-left: 1em;
-  padding-right: 1em;
-  white-space: nowrap;
-}
-
-#codegrab-remember {
   appearance: none;
-  width: 1.1em;
-  height: 1.1em;
+  width: 1.2em;
+  height: 1.2em;
   border: 1.5px solid #bbb;
   border-radius: 0.3em;
   background: #fff;
@@ -215,6 +186,43 @@ label[for="codegrab-remember"] {
   user-select: none;
 }
 
+#codegrab-remember, label[for="codegrab-remember"] {
+  cursor: pointer;
+}
+
+label[for="codegrab-remember"] {
+  font-size: 1em;
+  color: #444;
+  user-select: none;
+}
+
+.codegrab-remember-manual {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: 0.3em;
+  margin-bottom: 0.5em;
+}
+
+.codegrab-remember-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.codegrab-disabled, .codegrab-disabled > * {
+  cursor: not-allowed !important;
+  opacity: 0.7;
+}
+
+#codegrab-manually {
+  margin-left: 0;
+  margin-top: 0.2em;
+  padding-left: 1em;
+  padding-right: 1em;
+  white-space: nowrap;
+}
+
 #codegrab-overlay span, #codegrab-overlay a {
   color: #888;
   text-decoration: none;
@@ -236,17 +244,17 @@ label[for="codegrab-remember"] {
   margin-bottom: 0.5em;
 }
 
-.codegrab-row button {
+.codegrab-button {
   background: #f4f4f4;
   border: 1px solid #e0e0e0;
   border-radius: 0.4em;
-  padding: 0.4em 1em;
+  padding: 0.6em 1em;
   font-size: 1em;
   cursor: pointer;
   transition: background 0.2s, border 0.2s;
   min-width: 0;
 }
-.codegrab-row button:hover {
+.codegrab-button:hover {
   background: #eaeaea;
   border: 1px solid #bbb;
 }
@@ -269,11 +277,11 @@ label[for="codegrab-remember"] {
   align-items: center;
   height: 100%;
   width: 100%;
+  background: #1b1b1b;
 }
 #codegrab-logo img {
   width: 40px;
   height: 40px;
-  opacity: 0.7;
 }
 
 #codegrab-overlay.minimized {

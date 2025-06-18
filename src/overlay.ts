@@ -8,70 +8,89 @@ declare const JsBarcode: any
   (window as any).__codegrab_injected = true
 
   async function injectOverlay() {
-    if (document.getElementById("codegrab-overlay")) return
+    if (document.getElementById('codegrab-shadow-host')) return
 
-    const htmlText = await (await fetch(chrome.runtime.getURL("public/overlay.html"))).text()
-    const wrapper = document.createElement("div")
-    wrapper.innerHTML = htmlText
+    const htmlText = await (await fetch(chrome.runtime.getURL('public/overlay.html'))).text()
+    const wrapper = document.createElement('div')
+    wrapper.id = 'codegrab-shadow-host'
+    const shadow = wrapper.attachShadow({ mode: 'open' })
     document.body.appendChild(wrapper)
+
+    const htmlWrapper = document.createElement('div')
+    htmlWrapper.innerHTML = htmlText
+    shadow.appendChild(htmlWrapper)
     
-    const css = document.createElement("link")
-    css.rel = "stylesheet"
-    css.href = chrome.runtime.getURL("public/overlay.css")
-    css.id = "codegrab-overlay-css"
-    document.head.appendChild(css)
+    const css = document.createElement('link')
+    css.rel = 'stylesheet'
+    css.href = chrome.runtime.getURL('public/overlay.css')
+    css.id = 'codegrab-overlay-css'
+    shadow.appendChild(css)
 
-    const closeBtn = document.getElementById("codegrab-close")
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        const overlay = document.getElementById("codegrab-overlay")
-        if (overlay) overlay.style.display = "none"
-      })
-    }
+    await new Promise((resolve) => setTimeout(resolve, 0))
 
-    const minimizeBtn = document.getElementById("codegrab-minimize")
-    const overlay = document.getElementById("codegrab-overlay")
-    if (minimizeBtn && overlay) {
-      minimizeBtn.addEventListener("click", (e) => {
-        e.stopPropagation()
-        overlay.classList.add("minimized")
-      })
-      overlay.addEventListener("click", (e) => {
-        if (overlay.classList.contains("minimized")) {
-          overlay.classList.remove("minimized")
-          e.stopPropagation()
-          window.dispatchEvent(new CustomEvent('codegrab-unminimized'))
-        }
-      })
-      document.addEventListener("mousedown", (e) => {
-        if (!overlay.contains(e.target as Node) && !overlay.classList.contains("minimized") && overlay.style.display !== "none") {
-          overlay.classList.add("minimized")
-        }
-      })
-    }
+    const $ = (id: string) => shadow.getElementById(id)!
+    
+    const overlay = $('codegrab-overlay')
 
-    const qrBtn = document.getElementById('codegrab-generate-qr')
-    const barcodeBtn = document.getElementById('codegrab-generate-barcode')
-    if (qrBtn && barcodeBtn) {
-      qrBtn.addEventListener('mouseenter', () => {
-        barcodeBtn.style.display = 'inline-block'
-      })
-      qrBtn.addEventListener('mouseleave', () => {
-        setTimeout(() => {
-          if (!barcodeBtn.matches(':hover')) barcodeBtn.style.display = 'none'
-        }, 100)
-      })
-      barcodeBtn.addEventListener('mouseleave', () => {
-        barcodeBtn.style.display = 'none'
-      })
-    }
-
-    (document.getElementById("codegrab-remove-input") as HTMLButtonElement).addEventListener('click', () => {
-      (document.getElementById("codegrab-input") as HTMLInputElement).value = ''
+    $('codegrab-close').addEventListener('click', () => {
+      overlay.style.display = 'none'
     })
 
-    const inputElement = document.getElementById("codegrab-input") as HTMLInputElement
+    $('codegrab-minimize').addEventListener('click', (e) => {
+      e.stopPropagation()
+      overlay.classList.add('minimized')
+    })
+    
+    overlay.addEventListener('click', (e) => {
+      if (overlay.classList.contains('minimized')) {
+        overlay.classList.remove('minimized')
+        e.stopPropagation()
+        window.dispatchEvent(new CustomEvent('codegrab-unminimized'))
+      }
+    })
+
+    document.addEventListener('mousedown', (e) => {
+      const wrapper = document.getElementById('codegrab-shadow-host')
+      const shadow = wrapper?.shadowRoot
+
+      const isClickInsideOverlay = e
+        .composedPath()
+        .filter((el): el is Node => el instanceof Node)
+        .some((el) => shadow?.contains(el))
+
+      if (
+        !isClickInsideOverlay &&
+        !overlay.classList.contains('minimized') &&
+        overlay.style.display !== 'none'
+      ) {
+        overlay.classList.add('minimized')
+      }
+    })
+
+    const qrBtn = $('codegrab-generate-qr')
+    const barcodeBtn = $('codegrab-generate-barcode')
+
+    qrBtn.addEventListener('mouseenter', () => {
+      barcodeBtn.style.display = 'inline-block'
+    })
+
+    qrBtn.addEventListener('mouseleave', () => {
+      setTimeout(() => {
+        if (!barcodeBtn.matches(':hover')) barcodeBtn.style.display = 'none'
+      }, 100)
+    })
+
+    barcodeBtn.addEventListener('mouseleave', () => {
+      barcodeBtn.style.display = 'none'
+    })
+    
+    $('codegrab-remove-input').addEventListener('click', () => {
+      ($('codegrab-input') as HTMLInputElement).value = ''
+    })
+
+    const inputElement = $('codegrab-input') as HTMLInputElement
     const inputWrapper = inputElement.parentElement as HTMLDivElement
+    
     inputElement.addEventListener('focusin', () => {
       inputWrapper.classList.add('focus')
     })
@@ -80,44 +99,45 @@ declare const JsBarcode: any
       inputWrapper.classList.remove('focus')
     })
 
-    const js1 = document.createElement("script")
-    js1.src = chrome.runtime.getURL("lib/qrcode.min.js")
-    js1.id = "codegrab-qrcode-js"
+    const js1 = document.createElement('script')
+    js1.src = chrome.runtime.getURL('lib/qrcode.min.js')
+    js1.id = 'codegrab-qrcode-js'
     js1.onload = () => {
-      const js2 = document.createElement("script")
-      js2.src = chrome.runtime.getURL("lib/JsBarcode.all.min.js")
-      js2.id = "codegrab-barcode-js"
+      const js2 = document.createElement('script')
+      js2.src = chrome.runtime.getURL('lib/JsBarcode.all.min.js')
+      js2.id = 'codegrab-barcode-js'
       document.body.appendChild(js2)
     }
-    document.body.appendChild(js1)
+    document.body.appendChild(js1);
 
-    const logoImg = document.getElementById('codegrab-logo-img') as HTMLImageElement | null
-    if (logoImg) {
-      logoImg.src = chrome.runtime.getURL('public/icons/logo.svg')
-    }
+    ($('codegrab-logo-img') as HTMLImageElement).src = chrome.runtime.getURL('public/icons/codegrab-white@500x.webp')
   }
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "ping") {
-      sendResponse({ type: "pong" })
+    if (message.type === 'ping') {
+      sendResponse({ type: 'pong' })
       return true
     }
 
     injectOverlay().then(async () => {
-      const overlay = document.getElementById("codegrab-overlay") as HTMLDivElement
-      const output = document.getElementById("codegrab-output") as HTMLDivElement
+      const wrapper = document.getElementById('codegrab-shadow-host')
+      const shadow = wrapper?.shadowRoot!
+      const $ = (id: string) => shadow.getElementById(id)!
+      const $$ = (query: string) => shadow.querySelector(query)!
+
+      const overlay = $('codegrab-overlay') as HTMLDivElement
+      const output = $('codegrab-output') as HTMLDivElement
       if (!overlay || !output) return
 
-      const outputText = document.querySelector("#codegrab-value span") as HTMLSpanElement
-      const cbox = document.getElementById('codegrab-remember') as HTMLInputElement
-      const input = document.getElementById('codegrab-input') as HTMLInputElement
+      const outputText = $$('#codegrab-value span') as HTMLSpanElement
+      const cbox = $('codegrab-remember') as HTMLInputElement
+      const input = $('codegrab-input') as HTMLInputElement
       const inputWrap = input.parentElement as HTMLDivElement
       const url = location.hostname
       let selectorObj: any = undefined
       try {
         const result = await new Promise<any>(resolve => chrome.storage.sync.get(url, resolve))
         selectorObj = result[url]
-        console.log(selectorObj)
       } catch (e) {
         selectorObj = undefined
       }
@@ -187,7 +207,7 @@ declare const JsBarcode: any
         } else {
           if (text && output.title !== text) {
             cbox.disabled = true
-            cbox.parentElement?.classList.add("codegrab-disabled")
+            cbox.parentElement?.classList.add('codegrab-disabled')
             text = null
           }
           if (!message.selector) {
@@ -203,9 +223,9 @@ declare const JsBarcode: any
 
       function renderOutputQR(value?: string) {
         if (!value) return
-        output.innerHTML = ""
+        output.innerHTML = ''
         new QRCode(output, {
-          text: value || "No data",
+          text: value || 'No data',
           width: 200,
           height: 200
         })
@@ -215,17 +235,17 @@ declare const JsBarcode: any
       
       function renderOutputBarcode(value?: string) {
         if (!value) return
-        output.innerHTML = ""
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        output.innerHTML = ''
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
         output.appendChild(svg)
-        JsBarcode(svg, value || "No data", {
-          format: "CODE128",
+        JsBarcode(svg, value || 'No data', {
+          format: 'CODE128',
           width: 2,
           height: 80,
           displayValue: true
         })
-        output.title = value || ""
-        outputText.textContent = value || "..."
+        output.title = value || ''
+        outputText.textContent = value || '...'
       }
 
       function getTextFromSelector(selector: string) {
@@ -240,26 +260,26 @@ declare const JsBarcode: any
 
       function enableCheckbox() {
         cbox.disabled = false
-        cbox.parentElement?.classList.remove("codegrab-disabled")
+        cbox.parentElement?.classList.remove('codegrab-disabled')
       }
 
       function enableAndCheckCheckbox() {
         cbox.disabled = false
         cbox.checked = true
-        cbox.parentElement?.classList.remove("codegrab-disabled")
+        cbox.parentElement?.classList.remove('codegrab-disabled')
       }
 
       function disableAndUncheckCheckbox() {
         cbox.disabled = true
         cbox.checked = false
-        cbox.parentElement?.classList.add("codegrab-disabled")
+        cbox.parentElement?.classList.add('codegrab-disabled')
       }
 
       function checkUpdated() {
         if (input.value === text) {
-          inputWrap.classList.add("stored")
+          inputWrap.classList.add('stored')
         } else {
-          inputWrap.classList.remove("stored")
+          inputWrap.classList.remove('stored')
         }
       }
 
@@ -271,7 +291,7 @@ declare const JsBarcode: any
         return output.getAttribute('generated-from-selector') === 'true'
       }
       
-      (document.getElementById('codegrab-generate-qr') as HTMLButtonElement).onclick = () => {
+      ($('codegrab-generate-qr') as HTMLButtonElement).onclick = () => {
         const val = input.value
         if (val && val.trim() !== '') {
           if (val === text) enableAndCheckCheckbox()
@@ -280,7 +300,7 @@ declare const JsBarcode: any
           checkUpdated()
         }
       }
-      (document.getElementById('codegrab-generate-barcode') as HTMLButtonElement).onclick = () => {
+      ($('codegrab-generate-barcode') as HTMLButtonElement).onclick = () => {
         const val = input.value
         if (val && val.trim() !== '') {
           if (val === text) enableAndCheckCheckbox()
@@ -290,8 +310,8 @@ declare const JsBarcode: any
         }
       }
 
-      const copyBtn = document.getElementById('codegrab-copy') as HTMLButtonElement
-      const downloadBtn = document.getElementById('codegrab-download') as HTMLButtonElement
+      const copyBtn = $('codegrab-copy') as HTMLButtonElement
+      const downloadBtn = $('codegrab-download') as HTMLButtonElement
       
       function utf8ToBase64(str: string) {
         return btoa(
@@ -382,19 +402,19 @@ declare const JsBarcode: any
         }
       }
       
-      if (message.type !== "toggle-overlay") {
-        overlay.style.display = "grid"
-        overlay.classList.remove("minimized")
+      if (message.type !== 'toggle-overlay') {
+        overlay.style.display = 'grid'
+        overlay.classList.remove('minimized')
       }
-      if (message.type === "toggle-overlay") {
+      if (message.type === 'toggle-overlay') {
         if (overlay.classList.contains('minimized')) {
-          overlay.style.display = "grid"
-          overlay.classList.remove("minimized")
-        } else if (overlay.style.display === "grid") {
-          overlay.style.display = "none"
+          overlay.style.display = 'grid'
+          overlay.classList.remove('minimized')
+        } else if (overlay.style.display === 'grid') {
+          overlay.style.display = 'none'
         } else {
-          overlay.style.display = "grid"
-          overlay.classList.remove("minimized")
+          overlay.style.display = 'grid'
+          overlay.classList.remove('minimized')
         }
         return
       }
