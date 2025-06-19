@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "CodeGrab",
 	"version": "1.0",
-	"description": "Right-click to generate QR codes or barcodes from elements on any page.",
+	"description": "Grab values from websites and generate QR/barcodes instantly.",
 	"permissions": [
 		"contextMenus",
 		"storage",
