@@ -113,6 +113,7 @@
   background: #9b9b9b;
   -webkit-mask: var(--close);
   mask: var(--close);
+  cursor: pointer;
 }
 #codegrab-remove-input:hover {
   background: #707070;
