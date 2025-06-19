@@ -3,6 +3,10 @@
   --minify: no-repeat url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" stroke="red" stroke-width="10" fill="none" stroke-linecap="round"><path d="m10 54 44 0"/></svg>');
 }
 
+* {
+  color: black ;
+}
+
 #codegrab-overlay {
   justify-items: center;
   font-size: 16px;
