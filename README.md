@@ -3,7 +3,7 @@
 **CodeGrab** is a browser extension that allows you to quickly generate QR codes and barcodes from any selected text or saved selector on a website. It works entirely client-side and respects your privacy.
 
 👉 **[Install CodeGrab from the Chrome Web Store](https://chromewebstore.google.com/detail/codegrab/doijgnjlnohblbcidlgnmkpjnfppcalp)**  
-Available for all Chromium-based browsers: Chrome, Edge, Brave, Vivaldi, Opera, etc.
+Available for all Chromium-based browsers: Chrome, Edge, Opera, etc.
 
 ## ✨ Features
 
